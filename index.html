@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Bubble Pop 🫧</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    #game {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      /* Soft gradient sky - morning meadow */
+      background: linear-gradient(
+        180deg,
+        #e8f4f8 0%,
+        #d4eef7 20%,
+        #c5e8d3 50%,
+        #b8e0c8 70%,
+        #a8d8b8 100%
+      );
+    }
+
+    /* Soft hills in background */
+    .hill {
+      position: absolute;
+      bottom: 0;
+      border-radius: 50% 50% 0 0;
+    }
+
+    .hill-1 {
+      width: 140%;
+      height: 25%;
+      left: -20%;
+      background: linear-gradient(180deg, #9ed4a8 0%, #8bc99a 100%);
+    }
+
+    .hill-2 {
+      width: 100%;
+      height: 18%;
+      left: 30%;
+      background: linear-gradient(180deg, #a8dab0 0%, #96d0a0 100%);
+    }
+
+    .hill-3 {
+      width: 120%;
+      height: 12%;
+      left: -10%;
+      background: linear-gradient(180deg, #b4e0bb 0%, #a4d6ab 100%);
+    }
+
+    /* Sun */
+    .sun {
+      position: absolute;
+      top: 8%;
+      right: 12%;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle, #fff9e6 0%, #ffe566 50%, #ffdd44 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 40px rgba(255, 230, 100, 0.6);
+      animation: sun-glow 4s ease-in-out infinite;
+    }
+
+    @keyframes sun-glow {
+      0%, 100% { box-shadow: 0 0 40px rgba(255, 230, 100, 0.6); }
+      50% { box-shadow: 0 0 60px rgba(255, 230, 100, 0.8); }
+    }
+
+    /* Clouds */
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50px;
+      animation: cloud-drift 60s linear infinite;
+    }
+
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: inherit;
+      border-radius: 50%;
+    }
+
+    .cloud-1 {
+      width: 80px;
+      height: 30px;
+      top: 12%;
+      left: -100px;
+      animation-duration: 80s;
+    }
+    .cloud-1::before { width: 40px; height: 40px; top: -20px; left: 15px; }
+    .cloud-1::after { width: 30px; height: 30px; top: -10px; left: 45px; }
+
+    .cloud-2 {
+      width: 100px;
+      height: 35px;
+      top: 20%;
+      left: -120px;
+      animation-duration: 100s;
+      animation-delay: -30s;
+    }
+    .cloud-2::before { width: 50px; height: 50px; top: -25px; left: 20px; }
+    .cloud-2::after { width: 35px; height: 35px; top: -15px; left: 55px; }
+
+    @keyframes cloud-drift {
+      from { transform: translateX(0); }
+      to { transform: translateX(calc(100vw + 200px)); }
+    }
+
+    /* Flowers scattered on hills */
+    .flower {
+      position: absolute;
+      font-size: 16px;
+      opacity: 0.7;
+      animation: flower-sway 3s ease-in-out infinite;
+    }
+
+    @keyframes flower-sway {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+
+    /* Bubbles */
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: auto;
+      cursor: pointer;
+      animation: float-up linear forwards, wobble 2s ease-in-out infinite;
+      background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.4) 30%,
+        rgba(200, 230, 255, 0.2) 60%,
+        rgba(180, 210, 255, 0.1) 100%
+      );
+      box-shadow: 
+        inset -2px -2px 10px rgba(255, 255, 255, 0.8),
+        inset 2px 2px 10px rgba(100, 150, 200, 0.1),
+        0 0 20px rgba(150, 200, 255, 0.3);
+    }
+
+    /* Pastel colored bubbles */
+    .bubble.pink {
+      background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 220, 230, 0.5) 40%,
+        rgba(255, 180, 200, 0.2) 70%,
+        rgba(255, 150, 180, 0.1) 100%
+      );
+      box-shadow: 
+        inset -2px -2px 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(255, 180, 200, 0.4);
+    }
+
+    .bubble.lavender {
+      background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(230, 220, 255, 0.5) 40%,
+        rgba(200, 180, 255, 0.2) 70%,
+        rgba(180, 150, 255, 0.1) 100%
+      );
+      box-shadow: 
+        inset -2px -2px 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(200, 180, 255, 0.4);
+    }
+
+    .bubble.mint {
+      background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(200, 255, 230, 0.5) 40%,
+        rgba(150, 240, 200, 0.2) 70%,
+        rgba(120, 220, 180, 0.1) 100%
+      );
+      box-shadow: 
+        inset -2px -2px 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(150, 240, 200, 0.4);
+    }
+
+    .bubble.peach {
+      background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 230, 210, 0.5) 40%,
+        rgba(255, 200, 170, 0.2) 70%,
+        rgba(255, 180, 150, 0.1) 100%
+      );
+      box-shadow: 
+        inset -2px -2px 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(255, 200, 170, 0.4);
+    }
+
+    .bubble.sky {
+      background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(200, 230, 255, 0.5) 40%,
+        rgba(150, 200, 255, 0.2) 70%,
+        rgba(120, 180, 255, 0.1) 100%
+      );
+      box-shadow: 
+        inset -2px -2px 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(150, 200, 255, 0.4);
+    }
+
+    @keyframes float-up {
+      from {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      5% {
+        opacity: 1;
+      }
+      95% {
+        opacity: 1;
+      }
+      to {
+        transform: translateY(calc(-100vh - 100px)) translateX(var(--drift, 0px));
+        opacity: 0;
+      }
+    }
+
+    @keyframes wobble {
+      0%, 100% { 
+        border-radius: 50%;
+        transform: scale(1); 
+      }
+      25% { 
+        border-radius: 48% 52% 50% 50%;
+        transform: scale(1.02, 0.98); 
+      }
+      75% { 
+        border-radius: 52% 48% 50% 50%;
+        transform: scale(0.98, 1.02); 
+      }
+    }
+
+    /* Pop animation */
+    .bubble.pop {
+      animation: pop 0.3s ease-out forwards !important;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.3);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* Sparkles on pop */
+    .sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: sparkle-fly 0.5s ease-out forwards;
+    }
+
+    @keyframes sparkle-fly {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* Gentle butterfly occasionally */
+    .butterfly {
+      position: absolute;
+      font-size: 24px;
+      animation: butterfly-flutter 15s ease-in-out infinite;
+      opacity: 0.8;
+    }
+
+    @keyframes butterfly-flutter {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(50px, -30px) rotate(10deg); }
+      50% { transform: translate(100px, 0) rotate(-5deg); }
+      75% { transform: translate(50px, 30px) rotate(5deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    /* Touch indicator for first-time use */
+    .touch-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: rgba(100, 130, 100, 0.8);
+      font-size: 18px;
+      font-weight: 300;
+      pointer-events: none;
+      animation: fade-hint 3s ease-out forwards;
+      animation-delay: 2s;
+      opacity: 0;
+    }
+
+    @keyframes fade-hint {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; display: none; }
+    }
+
+    .touch-hint span {
+      display: block;
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <!-- Background elements -->
+    <div class="sun"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    
+    <div class="hill hill-1"></div>
+    <div class="hill hill-2"></div>
+    <div class="hill hill-3"></div>
+    
+    <!-- Flowers will be added by JS -->
+    
+    <div class="butterfly" style="top: 30%; left: 20%;">🦋</div>
+    
+    <div class="touch-hint">
+      <span>👆</span>
+      Touch the bubbles!
+    </div>
+  </div>
+
+  <script>
+    const game = document.getElementById('game');
+    const colors = ['pink', 'lavender', 'mint', 'peach', 'sky', ''];
+    let audioContext = null;
+    let hasInteracted = false;
+
+    // Initialize audio context on first interaction
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
+
+    // Create a gentle pop sound
+    function playPopSound() {
+      if (!audioContext) return;
+      
+      try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Gentle, pleasant frequency
+        const baseFreq = 400 + Math.random() * 200;
+        oscillator.frequency.setValueAtTime(baseFreq, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(baseFreq * 2, audioContext.currentTime + 0.1);
+        
+        oscillator.type = 'sine';
+        
+        // Soft volume
+        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+      } catch (e) {
+        console.log('Audio error:', e);
+      }
+    }
+
+    // Create sparkles on pop
+    function createSparkles(x, y, color) {
+      const sparkleCount = 6;
+      for (let i = 0; i < sparkleCount; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        
+        const angle = (i / sparkleCount) * Math.PI * 2;
+        const distance = 30 + Math.random() * 20;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        sparkle.style.left = x + 'px';
+        sparkle.style.top = y + 'px';
+        sparkle.style.setProperty('--tx', tx + 'px');
+        sparkle.style.setProperty('--ty', ty + 'px');
+        
+        game.appendChild(sparkle);
+        
+        setTimeout(() => sparkle.remove(), 500);
+      }
+    }
+
+    // Pop a bubble
+    function popBubble(bubble, e) {
+      if (bubble.classList.contains('pop')) return;
+      
+      if (!hasInteracted) {
+        hasInteracted = true;
+        initAudio();
+        const hint = document.querySelector('.touch-hint');
+        if (hint) hint.style.display = 'none';
+      }
+      
+      const rect = bubble.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      bubble.classList.add('pop');
+      playPopSound();
+      createSparkles(centerX, centerY);
+      
+      setTimeout(() => bubble.remove(), 300);
+    }
+
+    // Create a bubble
+    function createBubble() {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      
+      // Random color
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      if (color) bubble.classList.add(color);
+      
+      // Random size (bigger bubbles for easier tapping)
+      const size = 50 + Math.random() * 50;
+      bubble.style.width = size + 'px';
+      bubble.style.height = size + 'px';
+      
+      // Random starting position at bottom
+      const startX = Math.random() * (window.innerWidth - size);
+      bubble.style.left = startX + 'px';
+      bubble.style.bottom = '-' + (size + 20) + 'px';
+      
+      // Random drift
+      const drift = (Math.random() - 0.5) * 100;
+      bubble.style.setProperty('--drift', drift + 'px');
+      
+      // Random speed (slower = more Montessori-appropriate)
+      const duration = 8 + Math.random() * 6;
+      bubble.style.animationDuration = duration + 's, 2s';
+      
+      // Touch/click handler
+      const handlePop = (e) => {
+        e.preventDefault();
+        popBubble(bubble, e);
+      };
+      
+      bubble.addEventListener('touchstart', handlePop, { passive: false });
+      bubble.addEventListener('mousedown', handlePop);
+      
+      game.appendChild(bubble);
+      
+      // Remove when animation ends
+      setTimeout(() => {
+        if (bubble.parentNode && !bubble.classList.contains('pop')) {
+          bubble.remove();
+        }
+      }, duration * 1000);
+    }
+
+    // Add some flowers to the hills
+    function addFlowers() {
+      const flowers = ['🌸', '🌼', '🌷', '💮', '🌺'];
+      for (let i = 0; i < 12; i++) {
+        const flower = document.createElement('div');
+        flower.className = 'flower';
+        flower.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+        flower.style.bottom = (5 + Math.random() * 20) + '%';
+        flower.style.left = (5 + Math.random() * 90) + '%';
+        flower.style.animationDelay = (Math.random() * 2) + 's';
+        game.appendChild(flower);
+      }
+    }
+
+    // Start bubble generation
+    function startBubbles() {
+      // Create initial bubbles
+      for (let i = 0; i < 4; i++) {
+        setTimeout(() => createBubble(), i * 800);
+      }
+      
+      // Keep creating bubbles
+      setInterval(() => {
+        // Keep 4-6 bubbles on screen
+        const bubbleCount = document.querySelectorAll('.bubble:not(.pop)').length;
+        if (bubbleCount < 6) {
+          createBubble();
+        }
+      }, 1500);
+    }
+
+    // Prevent scrolling/zooming
+    document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+
+    // Initialize
+    addFlowers();
+    startBubbles();
+
+    // Wake up audio on any touch
+    document.addEventListener('touchstart', initAudio, { once: true });
+    document.addEventListener('mousedown', initAudio, { once: true });
+  </script>
+</body>
+</html>

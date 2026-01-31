@@ -1,0 +1,8 @@
+{
+  "name": "bubble-pop",
+  "version": "1.0.0",
+  "description": "A gentle bubble popping game for toddlers",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}
