@@ -149,7 +149,7 @@
       border-radius: 50%;
       pointer-events: auto;
       cursor: pointer;
-      animation: float-up linear forwards, wobble 2s ease-in-out infinite;
+      animation: float-up linear forwards;
       background: radial-gradient(
         ellipse at 30% 30%,
         rgba(255, 255, 255, 0.9) 0%,
@@ -231,7 +231,7 @@
 
     @keyframes float-up {
       0% {
-        transform: translateY(100vh);
+        bottom: -100px;
         opacity: 0;
       }
       5% {
@@ -241,7 +241,7 @@
         opacity: 1;
       }
       100% {
-        transform: translateY(-100px);
+        bottom: 110%;
         opacity: 0;
       }
     }
@@ -474,14 +474,14 @@
       bubble.style.width = size + 'px';
       bubble.style.height = size + 'px';
       
-      // Random starting position
+      // Random starting position (bottom of screen)
       const startX = Math.random() * (window.innerWidth - size);
       bubble.style.left = startX + 'px';
-      bubble.style.top = '0px';
+      bubble.style.bottom = '-100px';
       
       // Random speed (slower = more Montessori-appropriate)
       const duration = 8 + Math.random() * 6;
-      bubble.style.animationDuration = duration + 's, 2s';
+      bubble.style.animationDuration = duration + 's';
       
       // Touch/click handler
       const handlePop = (e) => {
